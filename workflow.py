@@ -1,5 +1,3 @@
-%%writefile workflow.py
-
 # Import libraries and modules
 from textwrap import dedent
 import html
