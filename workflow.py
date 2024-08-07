@@ -25,7 +25,8 @@ image = ImageSpec(
         "union==0.1.48",
         "seaborn==0.13.2",
         "joblib==1.3.2",
-        "huggingface_hub==0.24.0"
+        "huggingface_hub==0.24.0",
+        "pyarrow==17.0.0"
     ],
 )
 
