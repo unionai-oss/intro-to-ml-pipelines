@@ -1,29 +1,21 @@
 # Import libraries and modules
-from textwrap import dedent
 import html
-from flytekit import task, workflow, ImageSpec, current_context, Deck, Resources, Secret
-from flytekit.deck.renderer import MarkdownRenderer
-import pandas as pd
-from sklearn.datasets import fetch_openml
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import (
-    ConfusionMatrixDisplay,
-    accuracy_score,
-    classification_report,
-)
-# from sklearn.base import BaseEstimator
-# from sklearn.ensemble import HistGradientBoostingClassifier
-from sklearn.neighbors import KNeighborsClassifier
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 import io
-import base64
-import seaborn as sns
+from textwrap import dedent
 
-from huggingface_hub import HfApi
-
-from sklearn.datasets import load_iris
 import joblib
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import pandas as pd
+import base64s
+import seaborn as sns
+from flytekit import (Deck, ImageSpec, Resources, Secret, current_context,
+                      task, workflow)
+from huggingface_hub import HfApi
+from sklearn.datasets import load_iris
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
 
 # Define the container image to use for the tasks on Union with ImageSpec
 image = ImageSpec(
