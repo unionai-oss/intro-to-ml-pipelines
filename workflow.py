@@ -1,43 +1,39 @@
-%%writefile workflow.py
-
 # Import libraries and modules
-from textwrap import dedent
 import html
-from flytekit import task, workflow, ImageSpec, current_context, Deck, Resources, Secret
-from flytekit.deck.renderer import MarkdownRenderer
-import pandas as pd
-from sklearn.datasets import fetch_openml
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import (
-    ConfusionMatrixDisplay,
-    accuracy_score,
-    classification_report,
-)
-# from sklearn.base import BaseEstimator
-# from sklearn.ensemble import HistGradientBoostingClassifier
-from sklearn.neighbors import KNeighborsClassifier
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 import io
+from textwrap import dedent
+
+import joblib
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import pandas as pd
 import base64
 import seaborn as sns
-
+import os
+from dotenv import load_dotenv
+from flytekit import (Deck, ImageSpec, Resources, Secret, current_context,
+                      task, workflow)
 from huggingface_hub import HfApi
-
 from sklearn.datasets import load_iris
-import joblib
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
 
 # Define the container image to use for the tasks on Union with ImageSpec
 image = ImageSpec(
     packages=[
         "scikit-learn==1.4.1.post1",
         "matplotlib==3.8.3",
-        "union==0.1.48",
+        "union==0.1.64",
         "seaborn==0.13.2",
         "joblib==1.3.2",
-        "huggingface_hub==0.24.0"
+        "huggingface_hub==0.24.0",
+        "pyarrow==17.0.0",
+        "python-dotenv"
     ],
 )
+
+load_dotenv()
 
 # Helper function to convert a matplotlib figure into an HTML string
 def _convert_fig_into_html(fig: mpl.figure.Figure) -> str:
@@ -50,7 +46,7 @@ def _convert_fig_into_html(fig: mpl.figure.Figure) -> str:
 # Task: Download the dataset
 @task(
     cache=True,
-    cache_version="6",
+    cache_version="7",
     container_image=image,
     requests=Resources(cpu="2", mem="2Gi"),
 )
@@ -133,7 +129,16 @@ def evaluate_model(model: KNeighborsClassifier, dataset: pd.DataFrame) -> KNeigh
 )
 def upload_model_to_hf(model: KNeighborsClassifier, repo_name: str, model_name: str) -> str:
     ctx = current_context()
-    hf_token = ctx.secrets.get(key="hf_token")
+
+    # set hf_token from local or union secret
+    hf_token = os.getenv("HF_TOKEN")
+    if hf_token is None:
+        # If HF_TOKEN is not found, attempt to get it from the Flyte secrets
+        hf_token = ctx.secrets.get(key="hf_token")
+        print("Using Hugging Face token from Union secrets.")
+    else:
+        print("Using Hugging Face token from env.")
+
     # Create a new repository (if it doesn't exist)
     api = HfApi()
     api.create_repo(repo_name, token=hf_token, exist_ok=True)
