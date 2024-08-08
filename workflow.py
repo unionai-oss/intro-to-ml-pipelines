@@ -46,7 +46,7 @@ def _convert_fig_into_html(fig: mpl.figure.Figure) -> str:
 # Task: Download the dataset
 @task(
     cache=True,
-    cache_version="6",
+    cache_version="7",
     container_image=image,
     requests=Resources(cpu="2", mem="2Gi"),
 )
@@ -135,9 +135,9 @@ def upload_model_to_hf(model: KNeighborsClassifier, repo_name: str, model_name: 
     if hf_token is None:
         # If HF_TOKEN is not found, attempt to get it from the Flyte secrets
         hf_token = ctx.secrets.get(key="hf_token")
-        print("Using Hugging Face token from Flyte secrets.")
+        print("Using Hugging Face token from Union secrets.")
     else:
-        print("Using Hugging Face token from .env.")
+        print("Using Hugging Face token from env.")
 
     # Create a new repository (if it doesn't exist)
     api = HfApi()
