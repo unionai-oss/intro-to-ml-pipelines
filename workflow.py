@@ -84,9 +84,9 @@ def process_dataset(data_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     container_image=image,
     requests=Resources(cpu="3", mem="3Gi"),
 )
-def train_model(dataset: pd.DataFrame) -> KNeighborsClassifier:
+def train_model(dataset: pd.DataFrame, n_neighbors: int = 3) -> KNeighborsClassifier:
     X_train, y_train = dataset.drop("target", axis="columns"), dataset["target"]
-    model = knn = KNeighborsClassifier(n_neighbors=3)
+    model = knn = KNeighborsClassifier(n_neighbors=n_neighbors)
     return model.fit(X_train, y_train)
 
 # Evaluate the model using the test dataset
@@ -159,10 +159,10 @@ def upload_model_to_hf(model: KNeighborsClassifier, repo_name: str, model_name: 
 
 # Main workflow that orchestrates the tasks
 @workflow
-def main(repo_name: str, model_name: str) -> str:
+def main(repo_name: str, model_name: str, n_neighbors: int = 3) -> str:
     data_df = download_dataset()
     train, test = process_dataset(data_df)
-    model = train_model(dataset=train)
+    model = train_model(dataset=train, n_neighbors=n_neighbors)
     evaluated_model = evaluate_model(model=model, dataset=test)
     model_name = model_name
     upload_result = upload_model_to_hf(model=evaluated_model,
