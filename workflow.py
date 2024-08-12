@@ -2,6 +2,7 @@
 import html
 import io
 from textwrap import dedent
+from typing import List
 
 import joblib
 import matplotlib as mpl
@@ -157,13 +158,26 @@ def upload_model_to_hf(model: KNeighborsClassifier, repo_name: str, model_name: 
     )
     return f"Model uploaded to Hugging Face Hub: {repo_name}{model_name}"
 
+# Task: Model prediction with custom input data, good for testing
+@task(
+    container_image=image,
+    enable_deck=True,
+    requests=Resources(cpu="2", mem="2Gi"),
+)
+def model_predict(model: KNeighborsClassifier, pred_data: List[List[float]]) -> List[int]:
+    predictions = model.predict(pred_data)
+    return predictions.tolist()
+
+
 # Main workflow that orchestrates the tasks
 @workflow
-def main(repo_name: str, model_name: str, n_neighbors: int = 3) -> str:
+def main(repo_name: str, model_name: str, n_neighbors: int = 3,
+          pred_data: List[List[float]] = [[1.5, 2.3, 1.3, 2.4]]) -> str:
     data_df = download_dataset()
     train, test = process_dataset(data_df)
     model = train_model(dataset=train, n_neighbors=n_neighbors)
     evaluated_model = evaluate_model(model=model, dataset=test)
+    model_predict(model=model, pred_data=pred_data)
     model_name = model_name
     upload_result = upload_model_to_hf(model=evaluated_model,
                                        repo_name=repo_name,
